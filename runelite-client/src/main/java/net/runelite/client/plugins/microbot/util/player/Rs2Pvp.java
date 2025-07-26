@@ -57,6 +57,7 @@ public class Rs2Pvp {
                     3644, 3644, 3646, 3646, 3647, 3647, 3642, 3642, 3626, 3626, 3623, 3623, 3622, 3621, 3620, 3620, 3615, 3615, 3609},
             36
     );
+
     private static final Cuboid MAIN_WILDERNESS_CUBOID = new Cuboid(2944, 3525, 0, 3391, 4351, 3);
     private static final Cuboid GOD_WARS_WILDERNESS_CUBOID = new Cuboid(3008, 10112, 0, 3071, 10175, 3);
     private static final Cuboid WILDERNESS_UNDERGROUND_CUBOID = new Cuboid(2944, 9920, 0, 3455, 10879, 3);
