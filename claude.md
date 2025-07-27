@@ -15,10 +15,12 @@
 - Document findings in Serena memories for future reference
 
 ### 3. Sequential Thinking & Planning
+- **MANDATORY**: Use sequential thinking for ALL development tasks
 - Break down tasks into logical, sequential steps
 - Stay in planning mode until 99% confident in execution approach
 - Ask clarifying questions before implementation
 - Create detailed todo lists for complex tasks
+- **CRITICAL**: When time to test or build, STOP and prompt user to do it manually
 
 ### 4. Memory Management
 - Use `mcp__serena__write_memory` after completing todo lists or milestones
@@ -52,12 +54,14 @@
 - Provides additional utilities and helpers beyond standard RuneLite
 - **SUPPORTS SIDELOADING**: Can load plugins from JAR files at runtime
 
-### Development Focus - MyPlugins Standalone Project
-- **PRIMARY APPROACH**: Use the MyPlugins standalone project for all plugin development
-- Located at: `/Microbot/MyPlugins/` 
-- Independent Maven project that compiles separately from Microbot
-- Automatic installation to sideloading directory (`~/.runelite/microbot-plugins/`)
-- No need to rebuild entire Microbot client
+### Development Focus - Dual-Location Workflow
+- **DEVELOPMENT LOCATION**: Develop plugins in main microbot plugin directory for testing
+  - Located at: `microbot/runelite-client/src/main/java/net/runelite/client/plugins/microbot/yourplugin/`
+  - Allows real-time testing within RuneLite using IntelliJ run configuration
+- **EXPORT LOCATION**: MyPlugins project for JAR creation and distribution
+  - Located at: `MyPlugins/src/main/java/com/myplugins/yourplugin/`
+  - Independent Maven project that compiles separately from Microbot
+  - Automatic installation to sideloading directory (`~/.runelite/microbot-plugins/`)
 
 ### MyPlugins Project Structure
 ```
@@ -92,37 +96,100 @@ mvn compile                         # Quick compilation for development
 4. Configuration via standard RuneLite config system
 5. No manual installation steps required
 
-## Workflow Process
+## Complete Plugin Development Workflow
 
-1. **Initialization**
-   - Check available tools
-   - Read project structure
-   - Load relevant memories
-   
-2. **Planning Phase**
-   - Understand requirements thoroughly
-   - Research similar implementations
-   - Ask all clarifying questions
+### Phase 1: Initialization & Planning
+1. **Tool Discovery**
+   - Check available tools with `mcp__serena__get_current_config`
+   - Load relevant Serena memories for project context
+   - **MANDATORY**: Use sequential thinking to plan the entire development process
+
+2. **Requirements Analysis**
+   - Understand plugin requirements thoroughly
+   - Research similar implementations using Context7
+   - Ask ALL clarifying questions before coding
    - Create detailed implementation plan
-   
-3. **Implementation Phase**
-   - **MANDATORY**: Use Context7 and ultrathinking for all coding
-   - Work within MyPlugins project structure
-   - Follow existing code patterns
-   - Write clean, maintainable code
-   - Add appropriate error handling
-   
-4. **Build & Test Phase**
-   - Build using: `cd MyPlugins && mvn clean install`
-   - JAR created at: `/MyPlugins/target/myplugins-1.0.0.jar`
-   - JAR automatically copied to: `%USERPROFILE%/.runelite/microbot-plugins/`
-   - Test by starting Microbot (plugin loads automatically)
-   - No manual file copying required
-   
-5. **Documentation Phase**
-   - Update memories with learnings
-   - Document any gotchas or special considerations
-   - Create user-friendly instructions
+
+### Phase 2: Development Location Setup
+**Create plugin in development location:**
+```
+microbot/runelite-client/src/main/java/net/runelite/client/plugins/microbot/
+└── yourpluginname/                    ← Create HERE for development
+    ├── YourPluginNamePlugin.java
+    ├── YourPluginNameScript.java  
+    ├── YourPluginNameConfig.java
+    └── YourPluginNameOverlay.java
+```
+
+**Package declaration in files:**
+```java
+package net.runelite.client.plugins.microbot.yourpluginname;
+```
+
+### Phase 3: Implementation
+- **MANDATORY**: Use Context7 MCP server for all coding tasks
+- **MANDATORY**: Use sequential thinking throughout implementation
+- Follow existing microbot plugin patterns
+- Write clean, maintainable code with proper error handling
+
+### Phase 4: Testing Protocol
+**STOP HERE - Prompt user to test:**
+```
+🛑 TESTING TIME: Please run the RuneLite configuration in IntelliJ:
+1. Open IntelliJ Run Configurations
+2. Select "RuneLite" configuration  
+3. Click the green play button
+4. Test your plugin in the actual game environment
+5. Verify all functionality works as expected
+6. Return here when testing is complete
+```
+
+### Phase 5: Export Preparation
+**When user confirms plugin works, copy to export location:**
+
+**Copy FROM (Development):**
+```
+microbot/runelite-client/src/main/java/net/runelite/client/plugins/microbot/yourpluginname/
+```
+
+**Copy TO (Export):**
+```
+MyPlugins/src/main/java/com/myplugins/yourpluginname/
+```
+
+**CRITICAL**: Change package declarations in copied files:
+```java
+// FROM:
+package net.runelite.client.plugins.microbot.yourpluginname;
+
+// TO:
+package com.myplugins.yourpluginname;
+```
+
+### Phase 6: Maven Build Protocol
+**STOP HERE - Prompt user to build:**
+```
+🛑 BUILD TIME: Please build the JAR using IntelliJ Maven panel:
+
+Step-by-Step Instructions:
+1. Open Maven panel: View → Tool Windows → Maven
+2. Find "MyPlugins" in the Maven panel
+3. Expand "MyPlugins" → "Lifecycle"
+4. Double-click "clean" first
+5. Then double-click "install"
+6. Watch build output for success/errors
+7. Check that JAR appears in ~/.runelite/microbot-plugins/
+8. Return here when build is complete
+
+Alternative Method:
+- Right-click MyPlugins/pom.xml
+- Choose "Run Maven" → "install"
+```
+
+### Phase 7: Documentation & Memory Storage
+- Store successful patterns in Serena memories
+- Document any issues encountered and solutions
+- Update CLAUDE.md if new patterns discovered
 
 ## Critical Reminders
 - Never assume - always verify
