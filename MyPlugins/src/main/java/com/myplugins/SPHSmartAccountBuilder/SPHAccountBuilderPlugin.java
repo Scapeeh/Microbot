@@ -23,7 +23,7 @@ import javax.inject.Inject;
 import java.awt.*;
 
 @PluginDescriptor(
-        name = PluginDescriptor.SPH + "Account Builder",
+        name = "<html>[<font color=#FF8C00>SPH</font>] Account Builder",
         description = "F2P Account Builder",
         tags = {"microbot", "F2P Account Builder", "F2P", "Account", "Builder"},
         enabledByDefault = false
