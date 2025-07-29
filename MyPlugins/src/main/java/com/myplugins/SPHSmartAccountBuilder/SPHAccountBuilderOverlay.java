@@ -5,7 +5,7 @@ import net.runelite.client.plugins.microbot.Microbot;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.overlay.OverlayPanel;
 import net.runelite.client.ui.overlay.OverlayPosition;
-import net.runelite.client.ui.overlay.components.ButtonComponent;
+
 import net.runelite.client.ui.overlay.components.LineComponent;
 import net.runelite.client.ui.overlay.components.TitleComponent;
 
@@ -13,18 +13,15 @@ import javax.inject.Inject;
 import java.awt.*;
 
 public class SPHAccountBuilderOverlay extends OverlayPanel {
-    public final ButtonComponent myButton;
+    private final SPHAccountBuilderPlugin plugin;
+    
     @Inject
     SPHAccountBuilderOverlay(SPHAccountBuilderPlugin plugin)
     {
         super(plugin);
+        this.plugin = plugin;
         setPosition(OverlayPosition.TOP_LEFT);
         setNaughty();
-        myButton = new ButtonComponent("Test");
-        myButton.setPreferredSize(new Dimension(100, 30));
-        myButton.setParentOverlay(this);
-        myButton.setFont(FontManager.getRunescapeBoldFont());
-        myButton.setOnClick(() -> Microbot.openPopUp("Microbot", String.format("S-1D:<br><br><col=ffffff>%s Popup</col>", "Example")));
     }
     @Override
     public Dimension render(Graphics2D graphics) {
@@ -41,12 +38,23 @@ public class SPHAccountBuilderOverlay extends OverlayPanel {
                     .left(Microbot.status)
                     .build());
 
-            panelComponent.getChildren().add(myButton);
+            panelComponent.getChildren().add(LineComponent.builder()
+                    .left("Current Skill:")
+                    .right(getCurrentActivity())
+                    .build());
 
 
         } catch(Exception ex) {
             System.out.println(ex.getMessage());
         }
         return super.render(graphics);
+    }
+    
+    private String getCurrentActivity() {
+        try {
+            return plugin.sphaccountbuilderScript.getCurrentActivity();
+        } catch (Exception e) {
+            return "Unknown";
+        }
     }
 }

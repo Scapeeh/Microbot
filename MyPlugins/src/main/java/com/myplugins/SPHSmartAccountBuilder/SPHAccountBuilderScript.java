@@ -34,6 +34,8 @@ import net.runelite.http.api.worlds.World;
 
 import java.awt.event.KeyEvent;
 import java.util.concurrent.TimeUnit;
+import java.util.List;
+import java.util.ArrayList;
 
 
 public class SPHAccountBuilderScript extends Script {
@@ -58,6 +60,20 @@ public class SPHAccountBuilderScript extends Script {
     private boolean weChangeActivity = false;
 
     private WorldPoint chosenSpot = null;
+    
+    // Public method to get current activity for overlay
+    public String getCurrentActivity() {
+        if (shouldWoodcut) return "Woodcutting";
+        if (shouldMine) return "Mining";
+        if (shouldFish) return "Fishing";
+        if (shouldSmelt) return "Smelting";
+        if (shouldFiremake) return "Firemaking";
+        if (shouldCook) return "Cooking";
+        if (shouldCraft) return "Crafting";
+        if (shouldFletching) return "Fletching";
+        if (shouldSellItems) return "Selling Items";
+        return "Thinking...";
+    }
 
 
 
@@ -78,9 +94,17 @@ public class SPHAccountBuilderScript extends Script {
 
                 thinkBasedOnTime(); // Change our activity if it's been X amount of time.
 
+                // Buy all essential items on startup if needed
+                if (weChangeActivity) {
+                    buyAllEssentialItems();
+                }
+
                 handleBreaks();
 
                 getBuyAndEquipP2PTeles();
+
+                // Ensure we have required equipment before starting activities
+                ensureRequiredEquipment();
 
                 //Skilling
                 woodCutting();
@@ -289,7 +313,7 @@ public class SPHAccountBuilderScript extends Script {
     }
 
     public void getBuyAndEquipP2PTeles(){
-        if(Rs2Player.isInMemberWorld()){
+        if(Rs2Player.isInMemberWorld() && config.enableFletching()){
             if(!Rs2Equipment.isWearing(it->it!=null&&it.getName().contains("Amulet of glory("))
                     || !Rs2Equipment.isWearing(it->it!=null&&it.getName().contains("Ring of wealth ("))
                         || !Rs2Equipment.isWearing(it->it!=null&&it.getName().contains("Combat bracelet("))){
@@ -361,6 +385,281 @@ public class SPHAccountBuilderScript extends Script {
             }
     }
 
+    private void buyAllEssentialItems() {
+        List<String> essentialItems = getEssentialItemsList();
+        List<String> itemsToBuy = new ArrayList<>();
+        
+        for (String item : essentialItems) {
+            if (!hasItemInBankOrInventory(item)) {
+                itemsToBuy.add(item);
+            }
+        }
+        
+        if (!itemsToBuy.isEmpty()) {
+            Microbot.log("Need to buy " + itemsToBuy.size() + " essential items: " + String.join(", ", itemsToBuy));
+            
+            // Calculate total cost
+            int totalCost = 0;
+            Rs2ItemManager itemManager = new Rs2ItemManager();
+            
+            for (String item : itemsToBuy) {
+                int itemPrice = itemManager.getGEPrice(itemManager.getItemId(item));
+                int quantity = getItemQuantity(item);
+                totalCost += (int)(itemPrice * quantity * 1.30); // 30% markup
+            }
+            
+            if (totalCost > totalGP) {
+                Microbot.log("Not enough GP for all items. Need: " + totalCost + ", Have: " + totalGP);
+                return;
+            }
+            
+            // Buy all items
+            for (String item : itemsToBuy) {
+                int quantity = getItemQuantity(item);
+                buyItemBulk(item, quantity);
+            }
+        }
+    }
+    
+    private List<String> getEssentialItemsList() {
+        List<String> items = new ArrayList<>();
+        
+        // Basic tools
+        items.add("Iron axe");
+        items.add("Steel axe");
+        items.add("Mithril axe");
+        items.add("Adamant axe");
+        items.add("Rune axe");
+        
+        items.add("Iron pickaxe");
+        items.add("Mithril pickaxe");
+        items.add("Adamant pickaxe");
+        items.add("Rune pickaxe");
+        
+        items.add("Small fishing net");
+        items.add("Fly fishing rod");
+        items.add("Feather");
+        
+        items.add("Tinderbox");
+        items.add("Knife");
+        
+        // Crafting supplies
+        items.add("Thread");
+        items.add("Needle");
+        items.add("Necklace mould");
+        
+        // If fletching enabled and P2P, add teleports
+        if (config.enableFletching() && Rs2Player.isInMemberWorld()) {
+            items.add("Amulet of glory(6)");
+            items.add("Ring of wealth (5)");
+            items.add("Combat bracelet(6)");
+        }
+        
+        return items;
+    }
+    
+    private boolean hasItemInBankOrInventory(String itemName) {
+        // Check inventory first
+        if (Rs2Inventory.contains(itemName)) return true;
+        if (Rs2Equipment.isWearing(it -> it != null && it.getName().equals(itemName))) return true;
+        
+        // Check bank
+        if (Rs2Bank.getBankItem(itemName, true) != null) {
+            int quantity = Rs2Bank.getBankItem(itemName, true).getQuantity();
+            int requiredQuantity = getItemQuantity(itemName);
+            return quantity >= requiredQuantity;
+        }
+        
+        return false;
+    }
+    
+    private int getItemQuantity(String itemName) {
+        // Define quantities for different items
+        switch (itemName) {
+            case "Feather":
+                return 1000;
+            case "Thread":
+                return 200;
+            case "Tinderbox":
+            case "Knife":
+            case "Needle":
+            case "Necklace mould":
+            case "Small fishing net":
+            case "Fly fishing rod":
+            case "Amulet of glory(6)":
+            case "Ring of wealth (5)":
+            case "Combat bracelet(6)":
+                return 1;
+            default:
+                // Tools (axes, pickaxes)
+                return 1;
+        }
+    }
+    
+    private void buyItemBulk(String itemName, int quantity) {
+        if (!Rs2GrandExchange.isOpen()) {
+            openGEandBuyItem(itemName, quantity);
+            return;
+        }
+        
+        Rs2ItemManager itemManager = new Rs2ItemManager();
+        int itemsID = itemManager.getItemId(itemName);
+        if (itemName.equals("Leather")) itemsID = ItemID.LEATHER;
+        
+        int itemsPrice = itemManager.getGEPrice(itemsID);
+        int totalCost = (int)(itemsPrice * quantity * 1.30);
+        
+        if (totalCost > totalGP) {
+            Microbot.log("Can't afford " + itemName + ": " + totalCost + " > " + totalGP);
+            return;
+        }
+        
+        GrandExchangeRequest buyRequest = GrandExchangeRequest.builder()
+                .itemName(itemName)
+                .exact(true)
+                .action(GrandExchangeAction.BUY)
+                .percent(quantity <= 3 ? 99 : 20)
+                .quantity(quantity)
+                .build();
+        
+        if (Rs2GrandExchange.processOffer(buyRequest)) {
+            Microbot.log("Bought " + quantity + "x " + itemName);
+            sleepUntil(() -> Rs2GrandExchange.hasFinishedBuyingOffers(), Rs2Random.between(10000, 30000));
+        }
+    }
+
+    private void ensureRequiredEquipment() {
+        if (!Rs2Bank.isOpen()) {
+            walkToBankAndOpenIt();
+            if (!Rs2Bank.isOpen()) return;
+        }
+        
+        String requiredTool = null;
+        
+        if (shouldWoodcut) {
+            requiredTool = getWoodcuttingAxe();
+        } else if (shouldMine) {
+            requiredTool = getMiningPickaxe();
+        } else if (shouldFish) {
+            requiredTool = getFishingGear();
+        } else if (shouldFiremake && !Rs2Inventory.contains(ItemID.TINDERBOX) && !Rs2Equipment.isWearing(ItemID.TINDERBOX)) {
+            requiredTool = "Tinderbox";
+        } else if (shouldFletching && !Rs2Inventory.contains("Knife")) {
+            requiredTool = "Knife";
+        } else if (shouldCraft) {
+            int craftingLvl = Rs2Player.getRealSkillLevel(Skill.CRAFTING);
+            if (craftingLvl < 22 && !Rs2Inventory.contains("Needle")) {
+                requiredTool = "Needle";
+            } else if (craftingLvl >= 22 && !Rs2Inventory.contains("Necklace mould")) {
+                requiredTool = "Necklace mould";
+            }
+        }
+        
+        if (requiredTool != null) {
+            // Check if we have the tool in inventory or equipped
+            boolean hasTool = Rs2Inventory.contains(requiredTool) || 
+                            Rs2Equipment.isWearing(it -> it != null && it.getName().equals(requiredTool));
+            
+            if (!hasTool) {
+                // Try to get from bank
+                if (Rs2Bank.getBankItem(requiredTool, true) != null) {
+                    Microbot.log("Withdrawing required tool: " + requiredTool);
+                    Rs2Bank.withdrawOne(requiredTool, true);
+                    sleepUntil(() -> Rs2Inventory.contains(requiredTool), Rs2Random.between(2000, 5000));
+                    sleepHumanReaction();
+                } else {
+                    // Need to buy the tool
+                    Microbot.log("Need to buy required tool: " + requiredTool);
+                    goToBankandGrabAnItem(requiredTool, 1);
+                }
+            }
+        }
+        
+        // Special handling for fishing feathers
+        if (shouldFish && getFishingGear().equals("Fly fishing rod")) {
+            if (!Rs2Inventory.contains("Feather") || Rs2Inventory.count("Feather") < 100) {
+                if (Rs2Bank.getBankItem("Feather", true) != null && Rs2Bank.getBankItem("Feather", true).getQuantity() >= 100) {
+                    Rs2Bank.withdrawX("Feather", 1000);
+                    sleepUntil(() -> Rs2Inventory.contains("Feather"), Rs2Random.between(2000, 5000));
+                    sleepHumanReaction();
+                } else {
+                    goToBankandGrabAnItem("Feather", 1000);
+                }
+            }
+        }
+    }
+
+    private boolean needsToBuyItems() {
+        // Check if we need to buy items for the current activity
+        if (shouldWoodcut) {
+            String axeToUse = getWoodcuttingAxe();
+            if (!Rs2Inventory.contains(axeToUse) && !Rs2Equipment.isWearing(it -> it != null && it.getName().equals(axeToUse))) {
+                if (Rs2Bank.getBankItem(axeToUse) == null) return true;
+            }
+        }
+        
+        if (shouldMine) {
+            String pickaxeToUse = getMiningPickaxe();
+            if (!Rs2Inventory.contains(pickaxeToUse) && !Rs2Equipment.isWearing(it -> it != null && it.getName().equals(pickaxeToUse))) {
+                if (Rs2Bank.getBankItem(pickaxeToUse) == null) return true;
+            }
+        }
+        
+        if (shouldFish) {
+            String fishingGear = getFishingGear();
+            if (!Rs2Inventory.contains(it -> it != null && it.getName().contains(fishingGear))) {
+                if (Rs2Bank.getBankItem(fishingGear, true) == null) return true;
+            }
+            if (fishingGear.equals("Fly fishing rod") && !Rs2Inventory.contains("Feather")) {
+                if (Rs2Bank.getBankItem("Feather", true) == null || Rs2Bank.getBankItem("Feather", true).getQuantity() < 100) return true;
+            }
+        }
+        
+        if (shouldFiremake && !Rs2Inventory.contains(ItemID.TINDERBOX)) {
+            if (Rs2Bank.getBankItem(ItemID.TINDERBOX) == null) return true;
+        }
+        
+        if (shouldCraft) {
+            // Check crafting materials
+            int craftingLvl = Rs2Player.getRealSkillLevel(Skill.CRAFTING);
+            if (craftingLvl < 22) {
+                if (Rs2Bank.getBankItem("Thread", true) == null || Rs2Bank.getBankItem("Thread", true).getQuantity() < 10) return true;
+                if (Rs2Bank.getBankItem("Needle", true) == null) return true;
+            } else {
+                if (Rs2Bank.getBankItem("Necklace mould") == null) return true;
+            }
+        }
+        
+        if (shouldFletching) {
+            if (Rs2Bank.getBankItem("Knife", true) == null) return true;
+        }
+        
+        return false;
+    }
+    
+    private String getWoodcuttingAxe() {
+        int wcLvl = Rs2Player.getRealSkillLevel(Skill.WOODCUTTING);
+        if (wcLvl < 15) return "Iron axe";
+        if (wcLvl < 30) return "Steel axe";
+        if (wcLvl == 30) return "Mithril axe";
+        if (wcLvl < 41) return "Adamant axe";
+        return "Rune axe";
+    }
+    
+    private String getMiningPickaxe() {
+        int miningLvl = Rs2Player.getRealSkillLevel(Skill.MINING);
+        if (miningLvl < 21) return "Iron pickaxe";
+        if (miningLvl < 31) return "Mithril pickaxe";
+        if (miningLvl < 41) return "Adamant pickaxe";
+        return "Rune pickaxe";
+    }
+    
+    private String getFishingGear() {
+        int fishingLvl = Rs2Player.getRealSkillLevel(Skill.FISHING);
+        if (fishingLvl < 21) return "Small fishing net";
+        return "Fly fishing rod";
+    }
+
     public void depositAllIfWeChangeActivity(){
         if(weChangeActivity){
             if(Rs2Bank.isOpen()) {
@@ -375,7 +674,12 @@ public class SPHAccountBuilderScript extends Script {
                             Microbot.log("We're going on break");
                             break;
                         }
-                        Rs2Bank.depositAll();
+                        // Smart deposit - keep coins if we need to buy items
+                        if (needsToBuyItems() && Rs2Inventory.contains("Coins")) {
+                            Rs2Bank.depositAllExcept("Coins");
+                        } else {
+                            Rs2Bank.depositAll();
+                        }
                         sleepUntil(() -> Rs2Inventory.isEmpty(), Rs2Random.between(2000, 5000));
                         sleepHumanReaction();
                     }

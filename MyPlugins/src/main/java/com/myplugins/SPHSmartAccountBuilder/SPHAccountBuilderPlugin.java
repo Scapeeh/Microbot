@@ -51,7 +51,7 @@ public class SPHAccountBuilderPlugin extends Plugin implements SchedulablePlugin
     protected void startUp() throws AWTException {
         if (overlayManager != null) {
             overlayManager.add(sphaccountbuilderOverlay);
-            sphaccountbuilderOverlay.myButton.hookMouseListener();
+
         }
         sphaccountbuilderScript.run(config);
         sphaccountbuilderScript.shouldThink = true;
@@ -67,7 +67,7 @@ public class SPHAccountBuilderPlugin extends Plugin implements SchedulablePlugin
         Rs2Antiban.deactivateAntiban();
         sphaccountbuilderScript.shutdown();
         overlayManager.remove(sphaccountbuilderOverlay);
-        sphaccountbuilderOverlay.myButton.unhookMouseListener();
+
     }
 
     @Subscribe

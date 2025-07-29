@@ -1,23 +1,5 @@
 # Claude Microbot Development Instructions
 
-## 🚨 URGENT: Known Issues Requiring Immediate Attention Next Session
-
-### SPH Account Builder Plugin - Critical Bugs Identified
-**Status**: Development completed but TWO CRITICAL ISSUES found that break core functionality:
-
-1. **Grand Exchange Buying System BROKEN**
-   - **Problem**: GE system searches for items but never clicks to select them
-   - **Symptom**: Plugin thinks it bought items but actually hasn't purchased anything
-   - **Impact**: ALL material purchasing (fletching, crafting, cooking) will fail
-   - **Files**: `SPHAccountBuilderScript.java` - `openGEandBuyItem()` method needs fixing
-
-2. **Overlay Display Issue**  
-   - **Problem**: Overlay shows massive "TEST" box instead of proper status
-   - **Files**: `SPHAccountBuilderOverlay.java` needs investigation
-   - **Impact**: Poor user experience, no useful status information
-
-**Next Session Priority**: Fix these issues BEFORE any new development
-
 ## Recent Completed Work - SPH Account Builder Plugin ✅
 - ✅ Fletching integration with bronze arrow prioritization
 - ✅ Configurable activity timing (min/max minutes)  

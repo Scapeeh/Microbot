@@ -22,30 +22,39 @@
     </properties>
 
     <repositories>
-        <!-- Local repository for Microbot dependencies -->
-        <repository>
-            <id>local-maven-repo</id>
-            <url>file:///${project.basedir}/../.m2/repository</url>
-        </repository>
-        <!-- RuneLite repository -->
+        <!-- RuneLite repository (primary) -->
         <repository>
             <id>runelite</id>
             <url>https://repo.runelite.net</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
         </repository>
         <!-- Maven Central -->
         <repository>
             <id>central</id>
             <url>https://repo1.maven.org/maven2</url>
         </repository>
+        <!-- Local repository (if artifacts are installed locally) -->
+        <repository>
+            <id>local-maven-repo</id>
+            <url>file:///${user.home}/.m2/repository</url>
+        </repository>
     </repositories>
 
     <dependencies>
-        <!-- Microbot/RuneLite client dependency -->
+        <!-- Microbot client dependency -->
         <dependency>
             <groupId>net.runelite</groupId>
             <artifactId>client</artifactId>
             <version>${microbot.version}</version>
             <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         
         <!-- RuneLite API -->
@@ -77,6 +86,14 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>30.1.1-jre</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Javax Inject -->
+        <dependency>
+            <groupId>javax.inject</groupId>
+            <artifactId>javax.inject</artifactId>
+            <version>1</version>
             <scope>provided</scope>
         </dependency>
 
