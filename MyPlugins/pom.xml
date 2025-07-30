@@ -6,8 +6,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.myplugins</groupId>
-    <artifactId>myplugins</artifactId>
-    <version>1.0.0</version>
+    <artifactId>sph-account-builder</artifactId>
+    <version>1.0.1</version>
     <packaging>jar</packaging>
 
     <name>MyPlugins - Microbot Plugin Collection</name>
@@ -49,12 +49,6 @@
             <artifactId>client</artifactId>
             <version>${microbot.version}</version>
             <scope>provided</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         
         <!-- RuneLite API -->
@@ -85,7 +79,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>30.1.1-jre</version>
+            <version>23.2-jre</version>
             <scope>provided</scope>
         </dependency>
 
@@ -94,6 +88,14 @@
             <groupId>javax.inject</groupId>
             <artifactId>javax.inject</artifactId>
             <version>1</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Google Gson -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.8.5</version>
             <scope>provided</scope>
         </dependency>
 
